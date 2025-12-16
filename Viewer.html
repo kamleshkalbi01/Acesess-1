@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h3>Viewer</h3>
+<p id="loc">Waiting for location...</p>
+<video id="v" autoplay width="250"></video>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+apiKey: "AIzaSyAvRQtIjzccaPv5UesuQTGNuPxJRjZLujM",
+authDomain: "real-time-database-1051b.firebaseapp.com",
+projectId: "real-time-database-1051b",
+storageBucket: "real-time-database-1051b.firebasestorage.app",
+messagingSenderId: "11751688796",
+appId: "1:11751688796:web:5d6e50473c6c22433ff499",
+measurementId: "G-Q2C3XPBMB6"
+
+};
+
+// Initialize Firebaseconst app = initializeApp(firebaseConfig);const analytics = getAnalytics(app); SAME FIREBASE CONFIG YAHAN BHI PASTE KARO */
+//firebase.initializeApp({
+ // apiKey: "PASTE_HERE",
+ // authDomain: "PASTE_HERE",
+ // databaseURL: "PASTE_HERE",
+ // projectId: "PASTE_HERE",
+  //storageBucket: "PASTE_HERE",
+  //messagingSenderId: "PASTE_HERE",
+  //appId: "PASTE_HERE"
+//});
+
+const db = firebase.database();
+const pc = new RTCPeerConnection();
+
+pc.ontrack = e => v.srcObject = e.streams[0];
+
+/* 🔁 SIGNALING */
+db.ref("offer").on("value", async snap => {
+  if (snap.val()) {
+    await pc.setRemoteDescription(snap.val());
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    db.ref("answer").set(answer);
+  }
+});
+
+db.ref("offerCandidates").on("child_added", s => {
+  pc.addIceCandidate(new RTCIceCandidate(s.val()));
+});
+
+/* 📍 LOCATION RECEIVE */
+db.ref("location").on("value", s => {
+  if (s.val()) {
+    loc.innerText = `Lat: ${s.val().lat}, Long: ${s.val().lon}`;
+  }
+});
+</script>
+
+</body>
+</html>
